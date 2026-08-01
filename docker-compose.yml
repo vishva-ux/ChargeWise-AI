@@ -1,0 +1,75 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgis/postgis:16-3.4
+    container_name: chargewise_postgres
+    restart: always
+    environment:
+      POSTGRES_DB: chargewise_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgrespassword
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/1_schema.sql
+      - ./database/seed_data.sql:/docker-entrypoint-initdb.d/2_seed.sql
+
+  redis:
+    image: redis:7.2-alpine
+    container_name: chargewise_redis
+    restart: always
+    ports:
+      - "6379:6379"
+
+  ml_service:
+    build:
+      context: ./ml_service
+      dockerfile: Dockerfile
+    container_name: chargewise_ml_service
+    restart: always
+    ports:
+      - "8000:8000"
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: ChargeWise.API/Dockerfile
+    container_name: chargewise_backend
+    restart: always
+    environment:
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=chargewise_db;Username=postgres;Password=postgrespassword
+      - ConnectionStrings__Redis=redis:6379
+      - MLServiceUrl=http://ml_service:8000
+    depends_on:
+      - postgres
+      - redis
+      - ml_service
+    ports:
+      - "5000:80"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: chargewise_frontend
+    restart: always
+    ports:
+      - "3000:80"
+
+  nginx:
+    image: nginx:alpine
+    container_name: chargewise_nginx
+    restart: always
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - backend
+      - frontend
+      - ml_service
+
+volumes:
+  pgdata:
