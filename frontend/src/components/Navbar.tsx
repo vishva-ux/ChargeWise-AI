@@ -1,11 +1,12 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Zap, MapPin, Navigation, Calendar, ShieldCheck, User, LogOut, Cpu } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Zap, MapPin, Navigation, Calendar, ShieldCheck, LogOut } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 export const Navbar: React.FC = () => {
-  const { user, logout, login } = useAuth();
+  const { user, logout } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -14,16 +15,16 @@ export const Navbar: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         
         {/* Brand Logo */}
-        <Link to="/" className="flex items-center gap-2 group">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-600 to-emerald-500 flex items-center justify-center text-white shadow-md shadow-sky-500/20 group-hover:scale-105 transition-transform">
-            <Zap className="w-5 h-5 fill-current" />
+        <Link to="/" className="flex items-center gap-2.5 group">
+          <div className="w-9 h-9 rounded-lg bg-slate-100 border border-slate-300/80 flex items-center justify-center text-slate-700 shadow-sm group-hover:bg-slate-200 transition-colors">
+            <Zap className="w-4 h-4 fill-slate-700 text-slate-700" />
           </div>
           <div>
-            <span className="text-xl font-extrabold bg-gradient-to-r from-slate-900 via-sky-900 to-slate-800 bg-clip-text text-transparent">
-              ChargeWise<span className="text-sky-600">.AI</span>
+            <span className="text-lg font-bold tracking-tight text-slate-800">
+              ChargeWise<span className="text-sky-600 font-medium">.ai</span>
             </span>
-            <span className="block text-[10px] font-semibold tracking-wider text-slate-400 uppercase -mt-1">
-              Enterprise EV Grid
+            <span className="block text-[9px] font-semibold tracking-wider text-slate-400 uppercase -mt-0.5">
+              EV Network Grid
             </span>
           </div>
         </Link>
@@ -75,31 +76,27 @@ export const Navbar: React.FC = () => {
 
         {/* User Profile & Demo Controls */}
         <div className="flex items-center gap-3">
-          {/* ML Engine Active Badge */}
-          <div className="hidden lg:flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/60 text-[11px] font-medium">
-            <Cpu className="w-3.5 h-3.5 animate-pulse text-emerald-600" />
-            <span>XGBoost ML Engine Online</span>
-          </div>
-
-          {/* User Quick Switch */}
-          <button
-            onClick={() => login(user?.role === 'Admin' ? 'alex.mercer@gmail.com' : 'admin@chargewise.ai', user?.role === 'Admin' ? 'User' : 'Admin')}
-            className="text-[11px] font-semibold text-slate-500 hover:text-sky-600 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-lg border border-slate-200 transition-colors"
-            title="Switch demo user role"
-          >
-            Role: <span className="text-slate-800 font-bold">{user?.role}</span> ↻
-          </button>
 
           {/* User Profile Info */}
           <div className="flex items-center gap-2 pl-2 border-l border-slate-200">
             <div className="w-9 h-9 rounded-full bg-sky-100 border border-sky-200 text-sky-700 flex items-center justify-center font-bold text-xs">
-              {user?.fullName.charAt(0) || 'U'}
+              {user?.fullName?.charAt(0) || 'U'}
             </div>
             <div className="hidden sm:block text-left">
-              <div className="text-xs font-bold text-slate-800 leading-tight">{user?.fullName}</div>
-              <div className="text-[10px] text-slate-500 leading-tight">{user?.vehicleModel}</div>
+              <div className="text-xs font-bold text-slate-800 leading-tight">{user?.role === 'Admin' ? 'Admin' : 'User'}</div>
+              <div className="text-[10px] text-slate-500 leading-tight">{user?.vehicleModel || 'EV Vehicle'}</div>
             </div>
           </div>
+
+          {/* Logout */}
+          <button
+            onClick={() => { logout(); navigate('/auth'); }}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-red-50 hover:border-red-200 hover:text-red-600 text-slate-500 text-[11px] font-semibold transition-all"
+            title="Sign out"
+          >
+            <LogOut className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Sign out</span>
+          </button>
         </div>
 
       </div>

@@ -1,119 +1,151 @@
-import React from 'react';
-import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
+import React, { useEffect } from 'react';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
-import { Station } from '../types';
-import { Zap, MapPin, Navigation, Clock } from 'lucide-react';
+import { ChargingStation } from '../utils/aiEngine';
+import 'leaflet/dist/leaflet.css';
 
-interface StationMapProps {
-  stations: Station[];
-  selectedStation: Station | null;
-  onSelectStation: (station: Station) => void;
-  routePolyline?: [number, number][];
-  center?: [number, number];
-  zoom?: number;
-}
+// Fix for default Leaflet icon paths in React bundle environments
+delete (L.Icon.Default.prototype as any)._getIconUrl;
 
-// Custom Leaflet Icons
-const createCustomIcon = (color: string, label: string) => {
+const createCustomIcon = (type: 'FAST' | 'AC' | 'USER', text?: string) => {
+  if (type === 'USER') {
+    return L.divIcon({
+      className: 'custom-map-marker',
+      html: `<div class="marker-pin-user"></div>`,
+      iconSize: [22, 22],
+      iconAnchor: [11, 11],
+    });
+  }
+
+  const isFast = type === 'FAST';
+  const bgColor = isFast ? '#f59e0b' : '#06b6d4';
+  const iconSymbol = isFast ? '⚡' : '🔌';
+
   return L.divIcon({
-    className: 'custom-leaflet-marker',
+    className: 'custom-map-marker',
     html: `
-      <div style="
-        background-color: ${color};
-        width: 34px;
-        height: 34px;
-        border-radius: 50%;
-        border: 3px solid white;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.25);
-        display: flex;
-        align-items: center;
-        justify-content: justify-center;
-        color: white;
-        font-weight: bold;
-        font-size: 11px;
-        position: relative;
-      ">
-        <div style="margin: auto;">⚡</div>
+      <div style="background-color: ${bgColor}; width: 34px; height: 34px; border-radius: 50%; border: 2.5px solid #ffffff; box-shadow: 0 4px 12px rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px;">
+        ${iconSymbol}
       </div>
     `,
     iconSize: [34, 34],
-    iconAnchor: [17, 34],
-    popupAnchor: [0, -34]
+    iconAnchor: [17, 17],
+    popupAnchor: [0, -18],
   });
 };
 
-const greenIcon = createCustomIcon('#10b981', 'Available');
-const amberIcon = createCustomIcon('#f59e0b', 'Busy');
-const blueIcon = createCustomIcon('#0284c7', 'Selected');
+// Helper component to smoothly animate map center shifts
+const MapController: React.FC<{ center: [number, number]; zoom?: number }> = ({ center, zoom = 12 }) => {
+  const map = useMap();
+  useEffect(() => {
+    map.flyTo(center, zoom, { duration: 1.2, easeLinearity: 0.25 });
+  }, [center, zoom, map]);
+  return null;
+};
+
+interface StationMapProps {
+  stations: any[];
+  selectedStation: any | null;
+  onSelectStation: (station: any) => void;
+  userLat?: number;
+  userLng?: number;
+  center?: [number, number];
+  routePolyline?: [number, number][];
+}
 
 export const StationMap: React.FC<StationMapProps> = ({
   stations,
   selectedStation,
   onSelectStation,
-  routePolyline,
-  center = [12.9716, 77.5946],
-  zoom = 12
+  userLat = 13.0418,
+  userLng = 80.2341,
 }) => {
+  const getLat = (s: any) => s.lat ?? s.latitude ?? userLat;
+  const getLng = (s: any) => s.lng ?? s.longitude ?? userLng;
+  const getAvail = (s: any) => s.availablePorts ?? s.availableChargers ?? 2;
+  const getTotal = (s: any) => s.totalPorts ?? s.totalChargers ?? 4;
+  const getPower = (s: any) => s.powerKw ?? (s.chargers?.[0]?.maxPowerKw) ?? 60;
+  const getType = (s: any) => s.connectorType ?? (s.chargers?.[0]?.type) ?? 'CCS2 Fast';
+  const getWait = (s: any) => s.predictedWaitTimeMins ?? s.predictedWaitMinutes ?? 5;
+
+  const defaultCenter: [number, number] = selectedStation
+    ? [getLat(selectedStation), getLng(selectedStation)]
+    : [userLat, userLng];
+
   return (
-    <div className="w-full h-full min-h-[420px] rounded-2xl overflow-hidden shadow-inner border border-slate-200 relative">
-      <MapContainer center={center} zoom={zoom} scrollWheelZoom={true} className="w-full h-full">
+    <div className="absolute inset-0 w-full h-full z-0">
+      <MapContainer
+        center={defaultCenter}
+        zoom={12}
+        zoomControl={false}
+        attributionControl={false}
+        className="w-full h-full"
+      >
+        {/* Dark Modern Vector Tiles */}
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+          maxZoom={19}
         />
 
+        {/* Map Controller for smooth flyTo transitions */}
+        <MapController center={defaultCenter} zoom={selectedStation ? 13 : 12} />
+
+        {/* User Location Pulse Marker */}
+        <Marker position={[userLat, userLng]} icon={createCustomIcon('USER')}>
+          <Popup>
+            <div className="text-xs font-bold text-slate-900">
+              📍 Current Location (GPS)
+            </div>
+          </Popup>
+        </Marker>
+
+        {/* Station Markers */}
         {stations.map((st) => {
-          const isSelected = selectedStation?.id === st.id;
-          const icon = isSelected
-            ? blueIcon
-            : st.availableChargers > 0
-            ? greenIcon
-            : amberIcon;
+          const lat = getLat(st);
+          const lng = getLng(st);
+          const powerKw = getPower(st);
+          const connectorType = getType(st);
+          const avail = getAvail(st);
+          const total = getTotal(st);
+          const waitMins = getWait(st);
+          const price = st.pricePerKwh ?? 18;
+
+          const isFast = String(connectorType).toLowerCase().includes('ccs2') || String(connectorType).toLowerCase().includes('fast') || powerKw >= 50;
 
           return (
             <Marker
               key={st.id}
-              position={[st.latitude, st.longitude]}
-              icon={icon}
+              position={[lat, lng]}
+              icon={createCustomIcon(isFast ? 'FAST' : 'AC')}
               eventHandlers={{
-                click: () => onSelectStation(st)
+                click: () => onSelectStation(st),
               }}
             >
               <Popup className="custom-popup">
-                <div className="p-1 min-w-[200px]">
-                  <div className="font-bold text-slate-900 text-sm mb-1">{st.name}</div>
-                  <div className="text-xs text-slate-500 mb-2 flex items-center gap-1">
-                    <MapPin className="w-3 h-3 text-slate-400" />
-                    {st.address}
+                <div className="p-1 max-w-[200px]">
+                  <div className="flex items-center justify-between text-[11px] font-bold text-amber-600 mb-0.5">
+                    <span>{connectorType}</span>
+                    <span>⚡ {powerKw} kW</span>
                   </div>
-                  <div className="flex items-center justify-between text-xs py-1.5 px-2 bg-slate-50 rounded-lg mb-2">
-                    <span className="font-semibold text-emerald-600">
-                      {st.availableChargers} / {st.totalChargers} Available
-                    </span>
-                    <span className="font-bold text-slate-700">₹{st.pricePerKwh}/kWh</span>
+                  <h4 className="font-extrabold text-xs text-slate-900 leading-tight mb-1">{st.name}</h4>
+                  <p className="text-[10px] text-slate-500 mb-2">{st.address}</p>
+                  
+                  <div className="flex items-center justify-between text-[11px] font-semibold text-slate-700 bg-slate-100 p-1.5 rounded mb-2">
+                    <span>Avail: {avail}/{total}</span>
+                    <span className="text-emerald-600 font-bold">~{waitMins}m wait</span>
                   </div>
+
                   <button
                     onClick={() => onSelectStation(st)}
-                    className="w-full py-1.5 bg-sky-600 hover:bg-sky-700 text-white font-semibold text-xs rounded-lg transition-colors"
+                    className="w-full bg-amber-400 hover:bg-amber-500 text-slate-950 text-[11px] font-extrabold py-1.5 rounded-lg shadow-sm transition-colors text-center"
                   >
-                    View Station & Book
+                    Book Slot (₹{price}/kWh)
                   </button>
                 </div>
               </Popup>
             </Marker>
           );
         })}
-
-        {/* Route Polyline overlay if planning */}
-        {routePolyline && routePolyline.length > 0 && (
-          <Polyline
-            positions={routePolyline}
-            color="#0284c7"
-            weight={5}
-            opacity={0.8}
-            dashArray="10, 8"
-          />
-        )}
       </MapContainer>
     </div>
   );
