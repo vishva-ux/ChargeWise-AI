@@ -1,0 +1,25 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: chargewise-core-backend
+  datasource:
+    url: jdbc:postgresql://localhost:5432/chargewise
+    username: postgres
+    password: postgrespassword
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    database-platform: org.hibernate.spatial.dialect.postgis.PostgisDialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+# Redisson Redis Client Configuration
+redisson:
+  single-server-config:
+    address: "redis://127.0.0.1:6379"
+    connection-minimum-idle-size: 5
+    idle-connection-timeout: 10000
+    connect-timeout: 10000
+    timeout: 3000
