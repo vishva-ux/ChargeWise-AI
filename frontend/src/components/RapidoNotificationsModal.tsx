@@ -1,3 +1,5 @@
+"use client";
+
 import React from 'react';
 import { Bell, X, Zap, ShieldAlert, CheckCircle2, Clock } from 'lucide-react';
 

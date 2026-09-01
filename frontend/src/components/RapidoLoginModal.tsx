@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState } from 'react';
 import { Zap, ArrowRight, ShieldCheck, CheckCircle2, Car, Bike, Truck } from 'lucide-react';
 

@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState } from 'react';
 import { Sparkles, MapPin, Zap, Utensils, Navigation } from 'lucide-react';
 

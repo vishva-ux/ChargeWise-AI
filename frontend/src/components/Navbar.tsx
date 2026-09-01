@@ -1,21 +1,24 @@
+"use client";
+
 import React from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
 import { Zap, MapPin, Navigation, Calendar, ShieldCheck, LogOut } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 export const Navbar: React.FC = () => {
   const { user, logout } = useAuth();
-  const location = useLocation();
-  const navigate = useNavigate();
+  const pathname = usePathname();
+  const router = useRouter();
 
-  const isActive = (path: string) => location.pathname === path;
+  const isActive = (path: string) => pathname === path;
 
   return (
     <header className="bg-white/95 backdrop-blur-md border-b border-slate-200 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         
         {/* Brand Logo */}
-        <Link to="/" className="flex items-center gap-2.5 group">
+        <Link href="/" className="flex items-center gap-2.5 group">
           <div className="w-9 h-9 rounded-lg bg-slate-100 border border-slate-300/80 flex items-center justify-center text-slate-700 shadow-sm group-hover:bg-slate-200 transition-colors">
             <Zap className="w-4 h-4 fill-slate-700 text-slate-700" />
           </div>
@@ -32,7 +35,7 @@ export const Navbar: React.FC = () => {
         {/* Navigation Links */}
         <nav className="hidden md:flex items-center gap-1 bg-slate-100/80 p-1.5 rounded-full border border-slate-200/80">
           <Link
-            to="/"
+            href="/"
             className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold transition-all ${
               isActive('/') ? 'bg-white text-sky-600 shadow-sm' : 'text-slate-600 hover:text-slate-900'
             }`}
@@ -42,7 +45,7 @@ export const Navbar: React.FC = () => {
           </Link>
 
           <Link
-            to="/route-planner"
+            href="/route-planner"
             className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold transition-all ${
               isActive('/route-planner') ? 'bg-white text-sky-600 shadow-sm' : 'text-slate-600 hover:text-slate-900'
             }`}
@@ -52,7 +55,7 @@ export const Navbar: React.FC = () => {
           </Link>
 
           <Link
-            to="/my-bookings"
+            href="/my-bookings"
             className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold transition-all ${
               isActive('/my-bookings') ? 'bg-white text-sky-600 shadow-sm' : 'text-slate-600 hover:text-slate-900'
             }`}
@@ -63,7 +66,7 @@ export const Navbar: React.FC = () => {
 
           {user?.role === 'Admin' && (
             <Link
-              to="/admin"
+              href="/admin"
               className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold transition-all ${
                 isActive('/admin') ? 'bg-white text-emerald-600 shadow-sm' : 'text-slate-600 hover:text-slate-900'
               }`}
@@ -76,7 +79,6 @@ export const Navbar: React.FC = () => {
 
         {/* User Profile & Demo Controls */}
         <div className="flex items-center gap-3">
-
           {/* User Profile Info */}
           <div className="flex items-center gap-2 pl-2 border-l border-slate-200">
             <div className="w-9 h-9 rounded-full bg-sky-100 border border-sky-200 text-sky-700 flex items-center justify-center font-bold text-xs">
@@ -90,7 +92,7 @@ export const Navbar: React.FC = () => {
 
           {/* Logout */}
           <button
-            onClick={() => { logout(); navigate('/auth'); }}
+            onClick={() => { logout(); router.push('/auth'); }}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-red-50 hover:border-red-200 hover:text-red-600 text-slate-500 text-[11px] font-semibold transition-all"
             title="Sign out"
           >

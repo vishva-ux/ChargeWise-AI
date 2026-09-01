@@ -1,3 +1,5 @@
+"use client";
+
 import React from 'react';
 import { User, LogOut, X, ShieldCheck, Car, Smartphone, Zap } from 'lucide-react';
 
