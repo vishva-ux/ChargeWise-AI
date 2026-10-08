@@ -31,7 +31,7 @@ export interface ExtractedAIQuery {
   ragAnswer?: string;
 }
 
-// Initial Station Node Database (Simulating PostGIS Geospatial Records with pgvector embeddings)
+// Initial Station Node Database (Simulating PostGIS Geospatial Records & Operational Nodes)
 export const INITIAL_STATIONS: ChargingStation[] = [
   {
     id: 'st-001',
@@ -157,7 +157,7 @@ export const INITIAL_STATIONS: ChargingStation[] = [
 
 /**
  * Natural Language LLM Tool Calling & Zod Extraction Simulation
- * Parses raw prompt text into strict JSON parameters and queries the PostGIS/pgvector engine.
+ * Parses raw prompt text into strict JSON parameters (Zod schema) and queries the PostGIS spatial engine.
  */
 export function processLLMQuery(promptText: string): {
   extracted: ExtractedAIQuery;
@@ -180,16 +180,16 @@ export function processLLMQuery(promptText: string): {
     preferredType = 'Type 2 AC';
   }
 
-  // Check for RAG specific queries (broken plugs, food joints, safety)
+  // Check for intent specific queries (broken plugs, food joints, safety)
   const isBrokenQuery = text.includes('broken') || text.includes('faulty') || text.includes('connector');
   const isFoodQuery = text.includes('food') || text.includes('eat') || text.includes('snack') || text.includes('coffee');
   const isSemanticRAG = isBrokenQuery || isFoodQuery || text.includes('safe') || text.includes('log');
 
   let ragAnswer = '';
   if (isBrokenQuery) {
-    ragAnswer = 'Semantic pgvector lookup retrieved 1 station with reported connector issues (Krishnagiri Node - Port 2 latch issue). Showing verified operational stations nearby.';
+    ragAnswer = 'Operational station registry check retrieved 1 station with reported connector issues (Krishnagiri Node - Port 2 latch issue). Showing verified operational stations nearby.';
   } else if (isFoodQuery) {
-    ragAnswer = 'Semantic vector search identified top stations with 24/7 dining lounges & coffee shops along your route corridor.';
+    ragAnswer = 'Route corridor search identified top stations with 24/7 dining lounges & coffee shops along your path.';
   } else if (battery < 25) {
     ragAnswer = `Critical Battery Alert (${battery}%). AI Route Planner prioritized ultra-fast 120kW+ CCS2 stations within immediate reach.`;
   } else {

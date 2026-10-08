@@ -37,11 +37,11 @@
 | **Frontend Framework** | Next.js 14+ (App Router), React 18 | Serves the mobile-responsive canvas container, dynamic server/client components. |
 | **Language & Styling** | TypeScript 5, Tailwind CSS 3.4 | Type safety, Headspace mint theme (`#65C5B0`), hardware-accelerated animations. |
 | **Maps & Iconography** | Leaflet.js, Lucide React, QRCode.react | SSR-safe interactive Leaflet map, vector UI icons, QR pass matrix scanner. |
-| **AI Gateway Service** | Node.js (v20+), Express.js, LangChain | Proxy server intercepting driver prompts, managing tool-calling & RAG lookup pipelines. |
+| **AI Gateway Service** | Node.js (v20+), Express.js, LangChain | AI gateway handling natural-language intent parsing and structured Zod parameter extraction. |
 | **LLM Engine** | OpenAI API (GPT-4o-mini), Zod Validation | Intent parsing & structured JSON parameter extraction (`startLocation`, `destination`, `currentBatteryPercentage`). |
 | **Core Enterprise Backend** | Java 21, Spring Boot 3.2, Maven | Financial transactions, atomic slot reservations, spatial PostGIS calculations. |
 | **Concurrency Safeguard** | Redis 7, Redisson Client (`RLock`) | Distributed locks preventing race conditions / double-bookings on charging nodes. |
-| **Database & Vector Core** | PostgreSQL 16, PostGIS, `pgvector` | Spatial corridor queries (`ST_DWithin`) & 1536-dimensional vector embedding lookups. |
+| **Database & Spatial Engine** | PostgreSQL 16, PostGIS | Spatial corridor queries (`ST_DWithin`), geo-indexing, and transactional slot storage. |
 
 ---
 
@@ -114,7 +114,7 @@ ChargeWise-AI/
 │   │   │   ├── RapidoNotificationsModal.tsx
 │   │   │   └── StationMap.tsx
 │   │   └── utils/
-│   │       └── aiEngine.ts       # Zod Tool Calling, RAG Lookup & PostGIS station nodes
+│   │       └── aiEngine.ts       # Zod Schema Extraction, Route Optimization & PostGIS station nodes
 │   ├── package.json
 │   └── postcss.config.js
 ├── backend/                      # Java 21 Spring Boot 3 + Maven microservice
@@ -125,7 +125,7 @@ ChargeWise-AI/
 │       ├── service/              # PostGIS Spatial & Redisson Locking Services
 │       └── model/                # Entity DTO Models
 ├── node-ai-gateway/              # Node.js Express + LangChain AI Gateway
-├── database/                     # PostgreSQL + PostGIS + pgvector SQL Schemas
+├── database/                     # PostgreSQL + PostGIS SQL Schemas
 └── README.md
 ```
 
